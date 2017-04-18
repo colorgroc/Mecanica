@@ -33,6 +33,7 @@ namespace {
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
 	glm::mat4 _MVP;
+	//glm::mat4 posMat;
 	glm::mat4 _inv_modelview;
 	glm::vec4 _cameraPoint;
 
@@ -535,8 +536,10 @@ namespace Cubo {
 		"#version 330\n\
 in vec3 in_Position;\n\
 uniform mat4 mvpMat;\n\
+//uniform mat4 posMat;\n\
 void main() {\n\
-	gl_Position = mvpMat * vec4(in_Position, 1.0);\n\
+	//gl_Position = mvpMat * posMat * vec4(in_Position, 1.0);\n\
+gl_Position = mvpMat * vec4(in_Position, 1.0);\n\
 }";
 	const char* fragShader =
 		"#version 330\n\
@@ -595,11 +598,11 @@ void main() {\n\
 	void drawCubo() {
 		glBindVertexArray(VAO);
 		glUseProgram(cuboProgram);
-	
+		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "posMat"), 1, GL_FALSE, glm::value_ptr(_MVP));
 		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(_MVP));
 		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(_modelView));
 		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "projMat"), 1, GL_FALSE, glm::value_ptr(_projection));
-		glUniform4f(glGetUniformLocation(cuboProgram, "color"), 0.6f, 0.1f, 0.1f, 1.f);
+		glUniform4f(glGetUniformLocation(cuboProgram, "color"), 1.f, 0.43f, 0.78f, 0.f);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		glUseProgram(0);
