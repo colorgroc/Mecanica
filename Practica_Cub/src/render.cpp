@@ -33,7 +33,7 @@ namespace {
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
 	glm::mat4 _MVP;
-	//glm::mat4 posMat;
+	glm::mat4 posMat;
 	glm::mat4 _inv_modelview;
 	glm::vec4 _cameraPoint;
 
@@ -486,6 +486,8 @@ namespace Cubo {
 	GLuint VBO;
 	GLuint cuboShaders[2];
 	GLuint cuboProgram;
+	glm::vec3 centre = glm::vec3(0, 0, 0);
+	glm::mat4 posMat = glm::mat4(1);
 
 	GLfloat vert[] = {
 		-1.0f,-1.0f,-1.0f, // triángulo 1 : comienza
@@ -536,10 +538,10 @@ namespace Cubo {
 		"#version 330\n\
 in vec3 in_Position;\n\
 uniform mat4 mvpMat;\n\
-//uniform mat4 posMat;\n\
+uniform mat4 posMat;\n\
 void main() {\n\
-	//gl_Position = mvpMat * posMat * vec4(in_Position, 1.0);\n\
-gl_Position = mvpMat * vec4(in_Position, 1.0);\n\
+	gl_Position = mvpMat * posMat * vec4(in_Position, 1.0);\n\
+//gl_Position = mvpMat * vec4(in_Position, 1.0);\n\
 }";
 	const char* fragShader =
 		"#version 330\n\
@@ -562,7 +564,7 @@ void main() {\n\
 		// Position attribute
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
-
+		//posMat = glm::translate(glm::vec3(1, 0, 0);
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -584,21 +586,19 @@ void main() {\n\
 		glDeleteShader(cuboShaders[0]);
 		glDeleteShader(cuboShaders[1]);
 	}
-	void updateCubo(glm::vec3 pos) {
+	void updateCubo(glm::mat4 matrix) {
 		//AQUI HE FET COPY PASTE DE L'ESFERA PENSANT QUE POTSER S'HA DE MODIFICAR LA POSICIÓ DEL CUB MÉS ENDAVANT
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		float* buff = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-		buff[0] = pos.x;
-		buff[1] = pos.y;
-		buff[2] = pos.z;
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		//posMat = glm::translate(matrix, glm::vec3(x, y, z));
+		posMat = matrix;
+		//glUnmapBuffer(GL_ARRAY_BUFFER);
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 	}
 	void drawCubo() {
 		glBindVertexArray(VAO);
 		glUseProgram(cuboProgram);
-		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "posMat"), 1, GL_FALSE, glm::value_ptr(_MVP));
+		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "posMat"), 1, GL_FALSE, glm::value_ptr(posMat));
 		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(_MVP));
 		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(_modelView));
 		glUniformMatrix4fv(glGetUniformLocation(cuboProgram, "projMat"), 1, GL_FALSE, glm::value_ptr(_projection));

@@ -36,9 +36,9 @@ namespace ClothMesh {
 	extern void drawClothMesh();
 }
 namespace Cubo {
-	extern void setupCubo(glm::vec3 pos = glm::vec3(0.f, 1.f, 0.f));
+	extern void setupCubo(glm::vec3 pos = glm::vec3(0.f, 0.f, 0.f));
 	extern void cleanupCubo();
-	extern void updateCubo(glm::vec3 pos);
+	extern void updateCubo(glm::mat4 matrix);
 	extern void drawCubo();
 }
 
