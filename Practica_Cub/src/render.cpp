@@ -559,12 +559,12 @@ void main() {\n\
 
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(vert), &pos, GL_DYNAMIC_DRAW);
+
 
 		// Position attribute
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
-		//posMat = glm::translate(glm::vec3(1, 0, 0);
+
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -587,13 +587,7 @@ void main() {\n\
 		glDeleteShader(cuboShaders[1]);
 	}
 	void updateCubo(glm::mat4 matrix) {
-		//AQUI HE FET COPY PASTE DE L'ESFERA PENSANT QUE POTSER S'HA DE MODIFICAR LA POSICIÓ DEL CUB MÉS ENDAVANT
-		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		//posMat = glm::translate(matrix, glm::vec3(x, y, z));
-		posMat = matrix;
-		//glUnmapBuffer(GL_ARRAY_BUFFER);
-		//glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
+		posMat = matrix; //posMat declarada al vertShader
 	}
 	void drawCubo() {
 		glBindVertexArray(VAO);
