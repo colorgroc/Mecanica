@@ -7,7 +7,7 @@
 bool renderSphere = false;
 bool renderCapsule = false;
 bool renderParticles = false;
-bool renderCloth = true;
+bool renderCloth = false;
 bool renderCubo = true;
 
 namespace Sphere {
@@ -36,7 +36,7 @@ namespace ClothMesh {
 	extern void drawClothMesh();
 }
 namespace Cubo {
-	extern void setupCubo(glm::vec3 pos = glm::vec3(0.f, 0.f, 0.f));
+	extern void setupCubo(glm::vec3 pos = glm::vec3(0.f, 8.f, 0.f));
 	extern void cleanupCubo();
 	extern void updateCubo(glm::mat4 matrix);
 	extern void drawCubo();
