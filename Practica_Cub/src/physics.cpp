@@ -171,7 +171,7 @@ void PhysicsUpdate(float dt) {
 	}*/
 
 	// Front Face Colision
-	normal = glm::vec3(0, 0, -1);
+	/*normal = glm::vec3(0, 0, -1);
 	derP = cub->v + glm::cross(cub->angularVel, (cub->D - cub->x));
 	float velr = glm::dot(normal, derP);
 	glm::vec3 posT = cub->D*velr*dt;
@@ -180,7 +180,7 @@ void PhysicsUpdate(float dt) {
 	//if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, cub->D) + dis)) < 0) {
 	if ((velr + dis)*(glm::dot(normal, cub->D) + dis) < 0) { //nidea tu
 		std::cout << "He colis amb D front";
-	}
+	}*/
 
 	// Back Face Colision
 	/*normal = glm::vec3(0, 0, 1);
@@ -193,7 +193,27 @@ void PhysicsUpdate(float dt) {
 	pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
 
 	}*/
+	for (int i = 0; i < 8; i++) {
+		normal = glm::vec3(0, 0, -1);
+		dis = 5;
+		derP = cub->v + glm::cross(cub->angularVel, (vertexs[i] - cub->x));
+		float velr = glm::dot(normal, derP);
+		float ep = 1;
+		float velrneg = velr / (-ep);
+		//glm::mat4 posT = glm::translate(matrix, vertexs[i]);
+		//glm::mat4 posT = glm::translate(matrix, vertexs[i]);
+		//matrix = glm::translate(matrix, vertexs[i]);
+		glm::vec3 posAnt = glm::vec3(matrix * glm::vec4(vertexs[i], 1.f));
+		glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
+		
+		if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
+			std::cout << "He colis amb front";
+		}
+		}
 
+		/*if ((velr + dis)*(glm::dot(normal, vertexs[i]) + dis) < 0) { //nidea tu
+			std::cout << "He colis amb front";
+		}*/
 	//collisions
 	/*for (int i = 0; i < 8; i++) {
 
