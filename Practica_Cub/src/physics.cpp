@@ -22,6 +22,8 @@ glm::vec3 normal;
 glm::vec3 temp;
 glm::vec3 derP;
 float cont = 0.f;
+//glm::vec3 posAnt[];
+//glm::vec3 posNext[];
 
 struct Cub {
 	float w, d, h = 2.f;
@@ -193,6 +195,10 @@ void PhysicsUpdate(float dt) {
 	pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
 
 	}*/
+	
+
+
+	//glm::vec3 posAnt = cub->D;
 	for (int i = 0; i < 8; i++) {
 		normal = glm::vec3(0, 0, -1);
 		dis = 5;
@@ -203,13 +209,27 @@ void PhysicsUpdate(float dt) {
 		//glm::mat4 posT = glm::translate(matrix, vertexs[i]);
 		//glm::mat4 posT = glm::translate(matrix, vertexs[i]);
 		//matrix = glm::translate(matrix, vertexs[i]);
-		glm::vec3 posAnt = glm::vec3(matrix * glm::vec4(vertexs[i], 1.f));
-		glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
 		
-		if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
-			std::cout << "He colis amb front";
-		}
-		}
+		glm::vec3 posAnt = vertexs[i] + cub->x;//glm::vec3(matrix * glm::vec4(vertexs[i], 1.f));
+		glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
+		//for (int j = 0; j < 8; j++) {
+		
+			if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
+				std::cout << "He colis amb front" << std::endl;;
+				
+				//glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
+			}
+			else {
+				posAnt = posT;
+				std::cout << posAnt.x << "," << posAnt.y << "," << posAnt.z << std::endl;
+			}
+		/*	else {
+				posAnt = posT;
+				glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
+			}*/
+	
+		//}
+	}
 
 		/*if ((velr + dis)*(glm::dot(normal, vertexs[i]) + dis) < 0) { //nidea tu
 			std::cout << "He colis amb front";
@@ -224,3 +244,10 @@ void PhysicsCleanup() {
 	//TODO
 	Cubo::cleanupCubo();
 }
+/*
+void calculateVertexPos(glm::vec3 vertexs[]) {
+	for (int i = 0; i < 8; i++) {
+		posAnt[i] = vertexs[i];
+		posNext[i] = posAnt[i];
+	}
+}*/
