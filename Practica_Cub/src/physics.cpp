@@ -20,10 +20,13 @@ int dis;
 glm::mat4 matAnt;
 glm::mat4 matrix;
 glm::vec3 randomize;
-glm::vec3 normal;
+//glm::vec3 normal;
 glm::vec3 temp;
 glm::vec3 derP;
+glm::vec3 point;
 float cont = 0.f;
+void collision(glm::vec3 normal, float distance, glm::vec3 vertexs[], glm::mat4 matAnt, glm::mat4 matPost);
+void rebot(glm::vec3 vertPos, glm::vec3 normal, glm::vec3 ra);
 //glm::vec3 posAnt[];
 //glm::vec3 posNext[];
 
@@ -35,15 +38,17 @@ struct Cub {
 	glm::vec3 f = glm::vec3(0, forsa, 0);
 	glm::vec3 centreMassa = glm::vec3(0.f, 8.f, 0.f);
 	glm::vec3 force = glm::vec3(0, -gravetat, 0);
-	glm::vec3 x;
-	glm::vec3 v;
-	glm::vec3 p;
+	glm::vec3 posicio;
+	glm::vec3 velocitat;
+	glm::vec3 movLineal;
 	glm::mat3 iBody = glm::mat3(4);
-	glm::mat3 I;
-	glm::mat3 R = glm::mat3(1);
-	glm::vec3 l;
+	glm::mat3 inversa;
+	glm::mat3 rotacio = glm::mat3(1);
+	glm::vec3 momentumAngular;
 	glm::vec3 tau;
 	glm::vec3 angularVel;
+	glm::vec3 j;
+	glm::vec3 J;
 
 
 	bool primer;
@@ -99,9 +104,9 @@ void PhysicsInit() {
 	z = rand() % 20;
 	randomize = glm::vec3(x, y, z);
 	cub->primer = true;
-	cub->x = cub->centreMassa;
-	cub->l = glm::vec3(0.f);
-	cub->p = glm::vec3(0.f);
+	cub->posicio = cub->centreMassa;
+	cub->momentumAngular = glm::vec3(0.f);
+	cub->movLineal = glm::vec3(0.f);
 }
 
 void PhysicsUpdate(float dt) {
@@ -116,118 +121,148 @@ void PhysicsUpdate(float dt) {
 	cub->force = glm::vec3(x, -cub->gravetat, z);
 	cub->tau = glm::cross((randomize - cub->centreMassa), cub->f); //calcul de la tau --> el centre de massa es on comença el cub
 
-	/*if (cub->primer) {
-		cub->primer = false;
-		cub->force = glm::vec3(0, cub->gravetat * 30, 0); //fent aixo fem q el cub vagi cap amunt per caure despres
-	}*/
-
-
 	
-	cub->p = cub->p + dt*cub->force; //la P
-	cub->v = cub->p / cub->massa; //velocitat
-	cub->l = cub->l + dt*cub->tau; // la L 
-	cub->x = cub->x + dt*cub->v; //la X esa
-	cub->R = glm::mat3_cast(cub->quat); //pasem el quat a matriu 3x3
-	cub->I = cub->R*glm::inverse(cub->iBody)*glm::transpose(cub->R); //Matriu invertida rotacio - iBody
-	cub->angularVel = cub->I*cub->l; //velocitat angular
+	cub->movLineal = cub->movLineal + dt*cub->force; //la P
+	cub->velocitat = cub->movLineal / cub->massa; //velocitat
+	cub->momentumAngular = cub->momentumAngular + dt*cub->tau; // la L 
+	cub->posicio = cub->posicio + dt*cub->velocitat; //la X esa
+	cub->rotacio = glm::mat3_cast(cub->quat); //pasem el quat a matriu 3x3
+	cub->inversa = cub->rotacio*glm::inverse(cub->iBody)*glm::transpose(cub->rotacio); //Matriu invertida rotacio - iBody
+	cub->angularVel = cub->inversa*cub->momentumAngular; //velocitat angular
 	cub->quat = 1.f / 2.f * glm::quat(0.f, cub->angularVel)*cub->quat;  //derivada del quat
 	cub->quat = glm::normalize(cub->quat); //aixo es fa pq mho ha dit el profe XD, q sino es perdia info i no acabava de ferho be
 	
 	matAnt = matrix;
 
-	matrix = glm::translate(matrix, cub->x);
+	matrix = glm::translate(matrix, cub->posicio);
 	matrix = matrix*glm::mat4_cast(cub->quat); //apliquem la rotacio a la matrix passant altra vegada el quat a mat4
 	
 	
 	//------------COLISIONS--------------------------------------
+		//front
+		collision(glm::vec3(0, 0, -1), 5.f, vertexs, matAnt, matrix);
+		//back
+		collision(glm::vec3(0, 0, 1), 5.f, vertexs, matAnt, matrix);
+		//left
+		collision(glm::vec3(1, 0, 0), 5.f, vertexs, matAnt, matrix);
+		//right
+		collision(glm::vec3(-1, 0, 0), 5.f, vertexs, matAnt, matrix);
+		//top
+		collision(glm::vec3(0, -1, 0), 10.f, vertexs, matAnt, matrix);
+		//floor
+		collision(glm::vec3(0, 1, 0), 0.f, vertexs, matAnt, matrix);
 
-
-	//glm::vec3 posAnt = cub->D;
-	for (int i = 0; i < 8; i++) {
-		//normal = glm::vec3(0, 0, -1);
-		//dis = 5;
-		derP = cub->v + glm::cross(cub->angularVel, (vertexs[i] - cub->x));
-		float velr = glm::dot(normal, derP);
-		float ep = 1;
-		float velrneg = velr / (-ep);
-		//glm::mat4 posT = glm::translate(matrix, vertexs[i]);
-		//glm::mat4 posT = glm::translate(matrix, vertexs[i]);
-		//matrix = glm::translate(matrix, vertexs[i]);
-		
-		glm::vec3 posAnt = glm::vec3(matAnt * glm::vec4(vertexs[i], 1.f));
-		glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
-		//for (int j = 0; j < 8; j++) {
-		
-		//colisió fornt
-		normal = glm::vec3(0, 0, -1);
-		dis = 5;
-
-			if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
-				std::cout << "He colis amb front" << std::endl;;
-				//posAnt = posT;
-				//glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
-			}
-			
-			//colisió back
-			normal = glm::vec3(0, 0, 1);
-			dis = 5;
-
-			if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
-				std::cout << "He colis amb back" << std::endl;;
-				//posAnt = posT;
-				//glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
-			}
-			
-			//colision top
-			normal = glm::vec3(0, -1, 0);
-			dis = 10;
-			if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
-				std::cout << "He colis amb top" << std::endl;;
-				//posAnt = posT;
-				//glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
-			}
-		
-			//colisio floor
-			normal = glm::vec3(0, 1, 0);
-			dis = 0;
-			if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
-				std::cout << "He colis amb floor" << std::endl;;
-				//posAnt = posT;
-				//glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
-			}
-			
-
-			//colisio left
-			normal = glm::vec3(1, 0, 0);
-			dis = 5;
-			if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
-				std::cout << "He colis amb left" << std::endl;;
-				//posAnt = posT;
-				//glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
-			}
+		//rebot
 		
 
-			//colisio right
-			normal = glm::vec3(-1, 0, 0);
-			dis = 5;
-			if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
-				std::cout << "He colis amb right" << std::endl;;
-				//posAnt = posT;
-				//glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
-			}
-		
-	}
 
 	Cubo::updateCubo(matrix);
 }
 void PhysicsCleanup() {
-	//TODO
 	Cubo::cleanupCubo();
 }
-/*
-void calculateVertexPos(glm::vec3 vertexs[]) {
+void collision(glm::vec3 normal, float distance, glm::vec3 vertexs[], glm::mat4 matAnt, glm::mat4 matPost) {
 	for (int i = 0; i < 8; i++) {
-		posAnt[i] = vertexs[i];
-		posNext[i] = posAnt[i];
+		glm::vec3 posAnt = glm::vec3(matAnt * glm::vec4(vertexs[i], 1.f));
+		glm::vec3 posT = glm::vec3(matPost * glm::vec4(posAnt, 1.f));
+
+		/*glm::vec3 derP = cub->velocitat + glm::cross(cub->angularVel, (vertexs[i] - cub->posicio));
+		float velrAnt = glm::dot(normal, derP);
+		float ep = 0.1f;
+		float velrPost = -ep*velrAnt;*/
+		//glm::vec3 ra = point - cub->posicio;
+
+		//colisio
+		if ((glm::dot(normal, posT) + distance)*((glm::dot(normal, posAnt) + distance)) < 0) {
+			std::cout << "He colis." << std::endl;
+			rebot(vertexs[i], normal, posT);
+			//rebot
+			
+		}
+
+
 	}
+}
+void rebot(glm::vec3 vertPos, glm::vec3 normal, glm::vec3 ra) {
+
+		glm::vec3 derP = cub->velocitat + glm::cross(cub->angularVel, (vertPos - cub->posicio));
+		float velrAnt = glm::dot(normal, derP);
+		float ep = 0.1f;
+		float velrPost = -ep*velrAnt;
+		//derP = cub->velocitat + glm::cross(cub->angularVel, (vertexs[i] - cub->posicio));
+
+		float j = (-(1 + ep)*velrPost) / ((1 / cub->massa) + glm::dot(normal, glm::cross((cub->inversa*(glm::cross(ra, normal))), (ra))));
+		glm::vec3 J = j*normal;
+		glm::vec3 t = glm::cross(ra, J);
+
+		cub->movLineal = cub->movLineal + J;
+		cub->momentumAngular = cub->momentumAngular + t;
+	
+}
+//update collisions
+/*for (int i = 0; i < 8; i++) {
+//normal = glm::vec3(0, 0, -1);
+//dis = 5;
+derP = cub->velocitat + glm::cross(cub->angularVel, (vertexs[i] - cub->posicio));
+float velr = glm::dot(normal, derP);
+float ep = 1;
+float velrneg = velr / (-ep);
+//glm::mat4 posT = glm::translate(matrix, vertexs[i]);
+//glm::mat4 posT = glm::translate(matrix, vertexs[i]);
+//matrix = glm::translate(matrix, vertexs[i]);
+
+glm::vec3 posAnt = glm::vec3(matAnt * glm::vec4(vertexs[i], 1.f));
+glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
+//for (int j = 0; j < 8; j++) {
+
+
+//colisió fornt
+normal = glm::vec3(0, 0, -1);
+dis = 5;
+
+if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
+std::cout << "He colis amb front" << std::endl;;
+//posAnt = posT;
+//glm::vec3 posT = glm::vec3(matrix * glm::vec4(posAnt, 1.f));
+}
+
+//colisió back
+normal = glm::vec3(0, 0, 1);
+dis = 5;
+
+if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
+std::cout << "He colis amb back" << std::endl;;
+}
+
+//colision top
+normal = glm::vec3(0, -1, 0);
+dis = 10;
+if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
+std::cout << "He colis amb top" << std::endl;;
+
+}
+
+//colisio floor
+normal = glm::vec3(0, 1, 0);
+dis = 0;
+if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
+std::cout << "He colis amb floor" << std::endl;;
+}
+
+
+//colisio left
+normal = glm::vec3(1, 0, 0);
+dis = 5;
+if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
+std::cout << "He colis amb left" << std::endl;;
+}
+
+
+//colisio right
+normal = glm::vec3(-1, 0, 0);
+dis = 5;
+if ((glm::dot(normal, posT) + dis)*((glm::dot(normal, posAnt) + dis)) < 0) {
+std::cout << "He colis amb right" << std::endl;;
+}
+
 }*/
