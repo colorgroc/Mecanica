@@ -20,24 +20,25 @@ int dis;
 glm::mat4 matAnt;
 glm::mat4 matrix;
 glm::vec3 randomize;
-//glm::vec3 normal;
+float ep = 0.1f;
+bool primerCop = true;
 glm::vec3 temp;
 glm::vec3 derP;
 glm::vec3 point;
 float cont = 0.f;
-void collision(glm::vec3 normal, float distance, glm::vec3 vertexs[], glm::mat4 matAnt, glm::mat4 matPost);
-void rebot(glm::vec3 vertPos, glm::vec3 normal, glm::vec3 ra);
-//glm::vec3 posAnt[];
-//glm::vec3 posNext[];
+float timeCont = 20;
+void Collision(glm::vec3 normal, float distance, glm::vec3 vertexs[], glm::mat4 matAnt, glm::mat4 matPost);
+void Rebot(glm::vec3 vertPos, glm::vec3 normal, glm::vec3 ra);
+
 
 struct Cub {
 	float w, d, h = 2.f;
 	float massa = 1;
 	float gravetat = 9.8f;
-	float forsa = 5.f;
+	float forsa = 2.f;
 	glm::vec3 f = glm::vec3(0, forsa, 0);
-	glm::vec3 centreMassa = glm::vec3(0.f, 8.f, 0.f);
-	glm::vec3 force = glm::vec3(0, -gravetat, 0);
+	glm::vec3 centreMassa = glm::vec3(0.f, 5.f, 0.f);
+	glm::vec3 force;
 	glm::vec3 posicio;
 	glm::vec3 velocitat;
 	glm::vec3 movLineal;
@@ -79,11 +80,17 @@ namespace Cubo {
 }
 
 bool show_test_window = false;
+
 void GUI() {
 	{	//FrameRate
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-		//TODO
+		ImGui::SliderFloat("Fuerza", &cub->forsa, -20, 20);
+		ImGui::SliderFloat("Massa", &cub->massa, 0, 100);
+		ImGui::SliderFloat("Epsilon", &ep, 0, 1);
+		ImGui::SliderFloat("Gravetat", &cub->gravetat, 0, 100);
+		ImGui::SliderFloat("Time", &cont, 0, timeCont);
+
 	}
 
 	// ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
@@ -93,18 +100,42 @@ void GUI() {
 	}
 }
 
-
-
-
 void PhysicsInit() {
 
 	srand((unsigned)time(NULL));
 	x = rand() % 20;
 	y = rand() % 20;
 	z = rand() % 20;
+
+	float posX = rand() % 5;
+	float posY = rand() % 10;
+	float posZ = rand() % 5;
+	int signX = rand() % 2;
+	int signY = rand() % 2;
+	int signZ = rand() % 2;
+	//std::cout << "X:" << signX << "Y:" << signY << "Z:" << signZ;
+	if (signX == 1) {
+		posX = -posX; 
+		x = - x;
+	}
+	if (signY == 1) { 
+		posY = -posY; 
+		y = - y;
+	}
+
+	if (signZ == 1) { 
+		posZ = -posZ;
+		z = - z;
+	}
+
 	randomize = glm::vec3(x, y, z);
+	glm::vec3 randPos = glm::vec3(posX, posY, posZ);
+
 	cub->primer = true;
-	cub->posicio = cub->centreMassa;
+
+	if(primerCop) cub->posicio = cub->centreMassa;
+	else cub->posicio = randPos; //fent aixo fa encara més el loco
+
 	cub->momentumAngular = glm::vec3(0.f);
 	cub->movLineal = glm::vec3(0.f);
 }
@@ -112,16 +143,22 @@ void PhysicsInit() {
 void PhysicsUpdate(float dt) {
 
 	cont += ImGui::GetIO().DeltaTime;
-	//std::cout << "Time:" << cont;
 
-	if (cont >= 3) {
+
+	if (cont >= timeCont) {
+		primerCop = false;
 		PhysicsInit();
 		cont = 0;
 	}
-	cub->force = glm::vec3(x, -cub->gravetat, z);
-	cub->tau = glm::cross((randomize - cub->centreMassa), cub->f); //calcul de la tau --> el centre de massa es on comença el cub
 
-	
+	if (cub->primer) {
+		cub->tau = glm::cross((randomize - cub->centreMassa), cub->f); //calcul de la tau --> el centre de massa es on comença el cub
+		cub->primer = false;
+	}
+	else cub->tau = glm::vec3(0.f, 0.f, 0.f);
+
+	cub->force = glm::vec3(x, -cub->gravetat, z);
+
 	cub->movLineal = cub->movLineal + dt*cub->force; //la P
 	cub->velocitat = cub->movLineal / cub->massa; //velocitat
 	cub->momentumAngular = cub->momentumAngular + dt*cub->tau; // la L 
@@ -140,24 +177,24 @@ void PhysicsUpdate(float dt) {
 	
 	//------------COLISIONS--------------------------------------
 		//front
-		collision(glm::vec3(0, 0, -1), 5.f, vertexs, matAnt, matrix);
+		Collision(glm::vec3(0, 0, -1), 5.f, vertexs, matAnt, matrix);
 		//back
-		collision(glm::vec3(0, 0, 1), 5.f, vertexs, matAnt, matrix);
+		Collision(glm::vec3(0, 0, 1), 5.f, vertexs, matAnt, matrix);
 		//left
-		collision(glm::vec3(1, 0, 0), 5.f, vertexs, matAnt, matrix);
+		Collision(glm::vec3(1, 0, 0), 5.f, vertexs, matAnt, matrix);
 		//right
-		collision(glm::vec3(-1, 0, 0), 5.f, vertexs, matAnt, matrix);
+		Collision(glm::vec3(-1, 0, 0), 5.f, vertexs, matAnt, matrix);
 		//top
-		collision(glm::vec3(0, -1, 0), 10.f, vertexs, matAnt, matrix);
+		Collision(glm::vec3(0, -1, 0), 10.f, vertexs, matAnt, matrix);
 		//floor
-		collision(glm::vec3(0, 1, 0), 0.f, vertexs, matAnt, matrix);
+		Collision(glm::vec3(0, 1, 0), 0.f, vertexs, matAnt, matrix);
 
 	Cubo::updateCubo(matrix);
 }
 void PhysicsCleanup() {
 	Cubo::cleanupCubo();
 }
-void collision(glm::vec3 normal, float distance, glm::vec3 vertexs[], glm::mat4 matAnt, glm::mat4 matPost) {
+void Collision(glm::vec3 normal, float distance, glm::vec3 vertexs[], glm::mat4 matAnt, glm::mat4 matPost) {
 	for (int i = 0; i < 8; i++) {
 		glm::vec3 posAnt = glm::vec3(matAnt * glm::vec4(vertexs[i], 1.f));
 		glm::vec3 posT = glm::vec3(matPost * glm::vec4(posAnt, 1.f));
@@ -165,15 +202,15 @@ void collision(glm::vec3 normal, float distance, glm::vec3 vertexs[], glm::mat4 
 		//colisio
 		if ((glm::dot(normal, posT) + distance)*((glm::dot(normal, posAnt) + distance)) < 0) {
 			//rebot
-			rebot(vertexs[i], normal, posT);	
+			Rebot(vertexs[i], normal, posT);	
+			//faltaria comprobar colisio per temps
 		}
 	}
 }
-void rebot(glm::vec3 vertPos, glm::vec3 normal, glm::vec3 ra) {
+void Rebot(glm::vec3 vertPos, glm::vec3 normal, glm::vec3 ra) {
 
 		glm::vec3 derP = cub->velocitat + glm::cross(cub->angularVel, (vertPos - cub->posicio));
 		float velrAnt = glm::dot(normal, derP);
-		float ep = 0.1f;
 		float velrPost = -ep*velrAnt;
 		//derP = cub->velocitat + glm::cross(cub->angularVel, (vertexs[i] - cub->posicio));
 
