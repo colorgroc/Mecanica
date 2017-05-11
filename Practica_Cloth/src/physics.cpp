@@ -26,7 +26,8 @@ float KdSh = 8;
 float KdB = 5;
 float coefElasticity = 0.2;
 float coefFriction = 0.1;
-glm::vec3 temp;
+glm::vec3 Vn;
+glm::vec3 Vt;
 glm::vec3 vTangencial;
 bool collision = false;
 float col;
@@ -42,6 +43,7 @@ void GUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 		//GUI Waterfall
+		ImGui::SliderFloat("Ks", &Ks, 0, 1000);
 		ImGui::SliderFloat("Damping Stretch", &KdS, 0, 1000);
 		ImGui::SliderFloat("Damping Shear", &KdSh, 0, 1000);
 		ImGui::SliderFloat("Damping Bend", &KdB, 0, 1000);
@@ -351,66 +353,69 @@ void PhysicsUpdate(float dt) {
 		//------------COLISIONS--------------------------------------
 				// Floor Colision
 		normal = glm::vec3(0, 1, 0);
-		temp = glm::dot(normal, pC[i].vel) * normal;
+		Vn = glm::dot(normal, pC[i].vel) * normal;
+		Vt = pC[i].vel - Vn;
 		d = 0;
 		if ((glm::dot(normal, pC[i].pos) + d)*((glm::dot(normal, initial) + d)) < 0) {
-			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d)*normal;
-			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
+			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d) *normal;
+			pC[i].vel = pC[i].vel - (1 + coefElasticity) * Vn;//(glm::dot(normal, pC[i].vel))* normal;
+			pC[i].vel = pC[i].vel - glm::dot(coefFriction, Vt);//-coefFriction*(Vt);
+			
 		}
 
 
 
 		// Top Colision 
-		temp = glm::dot(normal, pC[i].vel) * normal;
+		Vn = glm::dot(normal, pC[i].vel) * normal;
 		normal = glm::vec3(0, -1, 0);
 		d = 10;
 		if ((glm::dot(normal, pC[i].pos) + d)*((glm::dot(normal, initial) + d)) < 0) {
 			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d)*normal;
-			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
+			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - Vn);
 		}
 
 
 		// Right Face Colision
 		normal = glm::vec3(-1, 0, 0);
-		temp = glm::dot(normal, pC[i].vel) * normal;
+		Vn = glm::dot(normal, pC[i].vel) * normal;
 		d = 5;
 		if ((glm::dot(normal, pC[i].pos) + d)*((glm::dot(normal, initial) + d)) < 0) {
 			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d)*normal;
-			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
+			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - Vn);
 		}
 
 
 		// Left Face Colision
 		normal = glm::vec3(1, 0, 0);
-		temp = glm::dot(normal, pC[i].vel) * normal;
+		Vn = glm::dot(normal, pC[i].vel) * normal;
 		d = 5;
 		if ((glm::dot(normal, pC[i].pos) + d)*((glm::dot(normal, initial) + d)) < 0) {
 			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d)*normal;
-			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
+			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - Vn);
 
 		}
 
 
 		// Front Face Colision
 		normal = glm::vec3(0, 0, -1);
-		temp = glm::dot(normal, pC[i].vel) * normal;
+		Vn = glm::dot(normal, pC[i].vel) * normal;
 		d = 5;
 		if ((glm::dot(normal, pC[i].pos) + d)*((glm::dot(normal, initial) + d)) < 0) {
 			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d)*normal;
-			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
+			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - Vn);
 
 		}
 
 
 		// Back Face Colision
 		normal = glm::vec3(0, 0, 1);
-		temp = glm::dot(normal, pC[i].vel) * normal;
+		Vn = glm::dot(normal, pC[i].vel) * normal;
 		d = 5;
 		//int deb = -(particlesContainer[i].pos.x*normal.x) - (particlesContainer[i].pos.y*normal.y) - (particlesContainer[i].pos.z*normal.z);
 		//std::cout << deb;
 		if ((glm::dot(normal, pC[i].pos) + d)*((glm::dot(normal, initial) + d)) < 0) {
 			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d)*normal;
-			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
+			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - Vn);
 
 		}
 
@@ -419,17 +424,17 @@ void PhysicsUpdate(float dt) {
 		float B = 4 * ((pC[i].pos.x - initial.x) * (initial.x + sphere->pos.x) + (pC[i].pos.y - initial.y) * (initial.x + sphere->pos.y) + (pC[i].pos.z - initial.z) * (initial.x + sphere->pos.z));
 		float C = 2 * ((initial.x * sphere->pos.x) + (initial.y * sphere->pos.y) + (initial.z * sphere->pos.z)) + (glm::pow(initial.x, 2) + glm::pow(initial.y, 2) + glm::pow(initial.z, 2) + glm::pow(sphere->pos.x, 2) + glm::pow(sphere->pos.y, 2) + glm::pow(sphere->pos.z, 2));
 		//equacio 2n grau
-		/*if ((-B + glm::sqrt(glm::pow(B, 2)) - 4 * A*C) / (2 * A) < 0 || (-B - glm::sqrt(glm::pow(B, 2)) - 4 * A*C) / (2 * A) < 0) {
+		if ((-B + glm::sqrt(glm::pow(B, 2)) - 4 * A*C) / (2 * A) < 0 || (-B - glm::sqrt(glm::pow(B, 2)) - 4 * A*C) / (2 * A) < 0) {
 			normal = glm::normalize(sphere->pos);
 			//normal = sphere->pos / (glm::sqrt(glm::pow(sphere->pos.x, 2) + glm::pow(sphere->pos.y, 2) + glm::pow(sphere->pos.z, 2)));
 			//normal = glm::vec3(particlesContainer[i].pos - sphere->pos);
-			temp = glm::dot(normal, pC[i].vel) * normal;
+			Vn = glm::dot(normal, pC[i].vel) * normal;
 			d = -(pC[i].pos.x*normal.x) - (pC[i].pos.y*normal.y) - (pC[i].pos.z*normal.z);
 
 			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d)*normal;
-			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
-		}*/
-		if (glm::sqrt(glm::pow(pC[i].pos.x - sphere->pos.x, 2) + glm::pow(pC[i].pos.y - sphere->pos.y, 2) + glm::pow(pC[i].pos.z - sphere->pos.z, 2)) < sphere->rad)
+			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - Vn);
+		}
+		/*if (glm::sqrt(glm::pow(pC[i].pos.x - sphere->pos.x, 2) + glm::pow(pC[i].pos.y - sphere->pos.y, 2) + glm::pow(pC[i].pos.z - sphere->pos.z, 2)) < sphere->rad)
 		{
 			normal = glm::normalize(pC[i].pos - sphere->pos);
 			//normal = sphere->pos / (glm::sqrt(glm::pow(sphere->pos.x, 2) + glm::pow(sphere->pos.y, 2) + glm::pow(sphere->pos.z, 2)));
@@ -440,7 +445,7 @@ void PhysicsUpdate(float dt) {
 
 			pC[i].pos = pC[i].pos - (1 + coefElasticity) * (glm::dot(normal, pC[i].pos) + d)*normal;
 			pC[i].vel = pC[i].vel - (1 + coefElasticity) * (glm::dot(normal, pC[i].vel))* normal - coefFriction*(pC[i].vel - temp);
-		}
+		}*/
 
 		mesh[3 * i + 0] = pC[i].pos.x;
 		mesh[3 * i + 1] = pC[i].pos.y;
@@ -457,7 +462,7 @@ void Spring(int part1, int part2, float lenght, float Kd) {
 
 	glm::vec3 f1, f2;
 
-	f1 = -((Ks * (modul - lenght) + Kd * (pC[part1].vel - pC[part2].vel)) * nAB)*nAB;
+	f1 = -((Ks * (modul - lenght) + Kd * glm::dot((pC[part1].vel - pC[part2].vel), nAB)))*nAB;
 	f2 = -f1;
 	//if(part1 == 0) pC[part1].force = f1;
 	//else {
